@@ -1,0 +1,160 @@
+/*#include<stdio.h>
+void test(int x){//int &x可以带回来，int x带不回来 
+	x=1024;
+	printf("test函数内部 x=%d\n",x);
+}
+int main(){
+	int x=1;
+	printf("调用test前 x=%d\n",x);
+	test(x);
+	printf("调用test后 x=%d\n",x)
+}
+*/
+
+
+//----------------------------------------------------------------------------------------------------- 
+
+
+//顺序表的实现之静态分配 
+/*#include<stdio.h>
+#define MaxSize 10//定义最大长度 
+typedef struct{
+	int data[MaxSize];//用静态的“数组”存放数据元素 
+	int length;
+}SqList;
+//基本操作  初始化一个顺序表 
+void InitList(SqList &L){
+	for(int i=0;i<MaxSize;i++)
+		L.data[i]=0;//将所有数据元素设置为默认初始值 
+	L.length=0;//顺序表初始长度为0 
+}
+int main(){
+	SqList L;//声明一个顺序表 
+	InitList(L);//初始化顺序表 
+	for(int i=0; i<MaxSize;i++)
+	//尝试违规打印整个data数组 
+	  	printf("data[%d]=%d\n",i,L.data[i]);
+	return 0;
+}
+
+
+//没有设置元素的默认值，内存中会有遗留的脏数据 */ 
+
+//--------------------------------------------------------------------------------------------------
+
+
+//顺序表的实现之动态分配 
+/*#include<stdlib.h>//malloc、free函数的头文件
+#include<stdio.h>
+#define InitSize 10//默认的最大长度
+typedef struct {
+	int *data;  //指示动态分配数组的指针 
+	int MaxSize;//顺序表的最大容量 
+	int length; //顺序表的当前长度 
+}SeqList;*
+void InitList(SeqList &L){
+	//用malloc函数申请一片连续的存储空间 
+    L.data=(int*)malloc(InitSize*sizeof(int));
+	L.length=0;
+	L.MaxSize=InitSize;
+} 
+//增加动态数组的长度 
+void IncreaseSize(SeqList &L,int len){
+	int *p=L.data;
+	L.data=(int*)malloc((L.MaxSize+len)*sizeof(int));
+	for(int i=0;i<L.length;i++){
+		L.data[i]=p[i];       //将数据复制到新区域 
+	}
+	L.MaxSize=L.MaxSize+len;//顺序表最大长度增加len
+	free(p);                //释放原来的内存空间 
+}
+int main(){
+	SeqList L;//声明一个顺序表
+	InitList(L);//初始化顺序表
+	//。。。往顺序表中随便插入几个元素 
+	IncreaseSize(L,5);
+	for(int i=0; i<L.MaxSize;i++)
+	//打印整个data数组 
+	  	printf("data[%d]=%d\n",i,L.data[i]);
+	return 0; 
+}
+
+*/
+//------------------------------------------------------------------------------------------
+
+//顺序表的基本操作 插入
+#include<stdio.h>
+#define MaxSize 10//定义最大长度
+typedef struct{
+	int data[MaxSize];//用静态的“数组”存放数据元素 
+	int length;       //顺序表的当前长度 
+}SqList;              //顺序表的定义类型 
+//基本操作  初始化一个顺序表 
+void InitList(SqList &L){
+	for(int i=0;i<MaxSize;i++)
+		L.data[i]=0;//将所有数据元素设置为默认初始值 
+	L.length=0;//顺序表初始长度为0 
+}
+//基本操作，在L的位序i处插入元素e
+bool ListInsert(SqList&L,int i,int e){ 
+	if(i<1||i>L.length+1)//判断i的范围是否有效 
+	      return false;
+	if(L.length>=MaxSize)//当前存储空间已满，不能插入 
+	      return false;	   
+	for(int j=L.length;j>=i;j--)//将第i个元素及之后的元素后移 
+		L.data[j]=L.data[j-1];
+	L.data[i-1]=e;              //在位置i处放入e 
+	L.length++;       //长度加1 
+	return true;
+} 
+/*int main(){
+	SqList L;//声明一个顺序表
+	InitList(L);//初始化顺序表
+	//往顺序表中随便插入元素 
+	ListInsert(L,1,3);
+	for(int i=0; i<MaxSize;i++)
+	//打印整个data数组 
+	  	printf("data[%d]=%d\n",i,L.data[i]);
+	return 0; 
+}*/
+
+//----------------------------------------------------------------------
+//顺序表的基本操作 删除
+bool ListDelete(SqList &L,int i,int&e){
+	if(i<1||i>L.length)
+		return false;
+	e=L.data[i-1];
+	for(int j=i;j<L.length;j++)
+		L.data[j-1]=L.data[j];
+		L.length--;
+		return true;
+} 
+int main(){
+	SqList L;//声明一个顺序表
+	InitList(L);//初始化顺序表
+	//往顺序表中随便插入元素 
+	ListInsert(L,1,3);
+	int e=-1;//用变量e把删除的元素带回来
+	if(ListDelete(L,1,e))
+	    printf("已删除第1个元素，删除元素值为=%d\n",e);
+	else
+		printf("位序i不合法，删除失败\n") ;
+	//打印整个data数组 
+	for(int i=0; i<MaxSize;i++)
+	  	printf("data[%d]=%d\n",i,L.data[i]);
+	return 0; 
+}
+
+//-------------------------------------------------------------------------------
+//按位查找
+int GetElem(SeqList L,int i){
+	return L.data[i-1];
+} 
+//-------------------------------------------------------------------------------
+//按值查找
+//在顺序表L中查找第一个元素值等于e的元素，并返回其位序
+int LocateElem(SeqList L,int e){
+	for (int i=0;i<L.length;i++)
+	 	if(L.data[i]==e)
+		 return i+1;    //数组下标为i的元素值等于e,返回其位序i+1 
+	return 0;        //退出循环，说明查找失败 
